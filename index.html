@@ -191,7 +191,7 @@
 
 <div class="board">
   <div class="board-title">MUNTAHIN IDE</div>
-  <div class="board-sub">Tempat nulis bit sebelum idenya lupa</div>
+  <div class="board-sub">Tempat nulis bit sebelum idenya lupa ©Sanpras 2026</div>
   <div class="flip-clock mono" id="clockDisplay">--:--</div>
 </div>
 
@@ -268,7 +268,7 @@ async function exportAllEntries() {
   }
   entries.sort((a, b) => a.createdAt - b.createdAt);
   const full = entries.map(entryToText).join('\n\n' + '-'.repeat(40) + '\n\n');
-  downloadText('stasiun-bit-semua-materi.txt', full);
+  downloadText('Muntahin-Ide-semua-materi.txt', full);
 }
 
 function showToast(msg) {
@@ -671,7 +671,7 @@ function renderDetail() {
         <span class="field-label">Kejadian</span>
         <p class="serif" style="font-size:17px;margin:0 0 14px;">${escapeHtml(e.kejadian)}</p>
         ${e.dialog ? `<span class="field-label">Dialog</span><p class="serif" style="font-size:16px;margin:0 0 14px;">"${escapeHtml(e.dialog)}"</p>` : ''}
-        ${e.rasa ? `<span class="field-label">Rasa fisik</span><p class="serif" style="font-size:16px;margin:0 0 14px;">${escapeHtml(e.rasa)}</p>` : ''}
+        ${e.rasa ? `<span class="field-label">Yang dirasakan</span><p class="serif" style="font-size:16px;margin:0 0 14px;">${escapeHtml(e.rasa)}</p>` : ''}
         <span class="field-label">Seberapa ganggu: ${e.skala}/5</span>
       </div>
     `;
@@ -688,7 +688,7 @@ function renderDetail() {
   }
   document.getElementById('back').onclick = () => { state = { view: 'home' }; render(); };
   document.getElementById('dlBtn').onclick = () => {
-    const fname = (e.type === 'quickcapture' ? 'tangkap-cepat-' : 'sesi-') + new Date(e.createdAt).toISOString().slice(0,10) + '.txt';
+    const fname = (e.type === 'quickcapture' ? 'Tulis-cepat-' : 'sesi-') + new Date(e.createdAt).toISOString().slice(0,10) + '.txt';
     downloadText(fname, entryToText(e));
   };
   document.getElementById('delBtn').onclick = async () => {
