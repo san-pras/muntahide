@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stasiun Bit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1B2430;
+    --navy-deep: #12181F;
+    --paper: #F6EFE2;
+    --paper-dim: #EAE1CE;
+    --ink: #2A2118;
+    --ink-dim: #6b5f4f;
+    --amber: #E8A33D;
+    --amber-dim: #B37A26;
+    --teal: #4FA89B;
+    --teal-dim: #2f6e64;
+    --rust: #C2452D;
+    --line: rgba(246,239,226,0.14);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--navy);
+    color: var(--paper);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .serif { font-family: 'Newsreader', serif; }
+
+  /* ---------- Board header ---------- */
+  .board {
+    background: var(--navy-deep);
+    border-bottom: 3px solid var(--amber);
+    padding: 22px 20px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .board::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.15) 3px, rgba(0,0,0,0.15) 4px);
+    pointer-events: none;
+  }
+  .board-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: 3px;
+    color: var(--amber);
+    text-transform: uppercase;
+  }
+  .board-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--teal);
+    margin-top: 4px;
+    text-transform: uppercase;
+  }
+  .flip-clock {
+    position: absolute; right: 20px; top: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--paper-dim);
+    letter-spacing: 1px;
+    text-align: right;
+  }
+
+  .wrap { max-width: 640px; margin: 0 auto; padding: 24px 18px 60px; }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: block; width: 100%;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600; font-size: 15px;
+    padding: 16px 18px;
+    border-radius: 3px;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: transform 0.08s ease;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--amber); color: var(--navy-deep); }
+  .btn-secondary { background: transparent; color: var(--paper); border: 1.5px solid var(--teal); }
+  .btn-ghost { background: transparent; color: var(--paper-dim); border: 1px dashed var(--line); }
+  .btn-danger { background: transparent; color: var(--rust); border: 1px solid var(--rust); }
+  .btn-small { padding: 9px 12px; font-size: 12.5px; border-radius: 3px; width: auto; display: inline-block; }
+
+  .cta-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+  .cta-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--amber-dim); text-transform: uppercase; margin: 0 0 6px 2px; }
+  .cta-desc { font-size: 12px; color: var(--paper-dim); margin-top: 4px; font-weight: 400; }
+
+  /* ---------- Departure board list ---------- */
+  .section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--teal); border-bottom: 1px solid var(--line);
+    padding-bottom: 8px; margin: 30px 0 12px;
+  }
+  .row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 4px; border-bottom: 1px solid var(--line);
+    cursor: pointer;
+  }
+  .row:hover { background: rgba(255,255,255,0.03); }
+  .row-plat { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--amber); width: 44px; flex-shrink: 0; }
+  .row-body { flex: 1; min-width: 0; }
+  .row-title { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--paper-dim); margin-top: 2px; }
+  .row-status { font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 3px 7px; border-radius: 2px; letter-spacing: 1px; flex-shrink: 0; }
+  .status-baru { background: rgba(232,163,61,0.18); color: var(--amber); }
+  .status-tagged { background: rgba(79,168,155,0.18); color: var(--teal); }
+  .empty-note { font-size: 13px; color: var(--paper-dim); font-style: italic; padding: 14px 4px; }
+
+  /* ---------- Card / paper surfaces ---------- */
+  .paper-card {
+    background: var(--paper); color: var(--ink);
+    border-radius: 4px; padding: 20px;
+    margin-bottom: 16px;
+  }
+  .field-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 6px; display: block; }
+  textarea, input[type=text] {
+    width: 100%; border: 1px solid #d8cdb4; border-radius: 3px;
+    background: #FFFDF8; color: var(--ink);
+    font-family: 'Newsreader', serif; font-size: 16px; line-height: 1.5;
+    padding: 12px; resize: vertical;
+  }
+  textarea:focus, input:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
+  .qc-field { margin-bottom: 16px; }
+  input[type=range] { width: 100%; accent-color: var(--rust); }
+  .scale-labels { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-dim); margin-top: 4px; }
+
+  /* ---------- Topbar for sub-views ---------- */
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .back-link { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--paper-dim); cursor: pointer; background: none; border: none; padding: 6px 0; }
+  .back-link:hover { color: var(--amber); }
+
+  /* ---------- Warmup ---------- */
+  .prompt-box { background: var(--navy-deep); border-left: 3px solid var(--amber); padding: 16px; margin-bottom: 16px; border-radius: 2px; }
+  .prompt-box p { font-family: 'Newsreader', serif; font-style: italic; font-size: 16px; margin: 0; color: var(--paper); }
+  .timer-big { font-family: 'JetBrains Mono', monospace; font-size: 34px; font-weight: 700; color: var(--amber); text-align: center; margin: 6px 0 18px; letter-spacing: 2px; }
+
+  /* ---------- Freewrite fullscreen ---------- */
+  .fw-shell { position: fixed; inset: 0; background: var(--paper); z-index: 50; display: flex; flex-direction: column; }
+  .fw-top { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: var(--navy-deep); color: var(--paper); }
+  .fw-timer { font-family: 'JetBrains Mono', monospace; font-size: 20px; color: var(--amber); }
+  .fw-lock-badge { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1px; padding: 5px 9px; border-radius: 3px; background: rgba(194,69,45,0.2); color: var(--rust); border: 1px solid var(--rust); cursor: pointer; }
+  .fw-lock-badge.off { background: rgba(255,255,255,0.08); color: var(--paper-dim); border-color: var(--line); }
+  .fw-text {
+    flex: 1; border: none; padding: 34px 22px; font-family: 'Newsreader', serif;
+    font-size: 20px; line-height: 1.7; color: var(--ink); background: var(--paper);
+    resize: none; width: 100%;
+  }
+  .fw-text:focus { outline: none; }
+  .fw-flash {
+    position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
+    background: var(--rust); color: var(--paper); font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; padding: 8px 16px; border-radius: 3px; opacity: 0; transition: opacity 0.15s;
+    pointer-events: none; letter-spacing: 0.5px; z-index: 60;
+  }
+  .fw-flash.show { opacity: 1; }
+  .shake { animation: shake 0.3s; }
+  @keyframes shake { 10%,90%{transform:translateX(-2px)} 20%,80%{transform:translateX(3px)} 30%,50%,70%{transform:translateX(-5px)} 40%,60%{transform:translateX(5px)} }
+  .fw-bottom { padding: 12px 18px; background: var(--navy-deep); text-align: center; }
+  .fw-bottom button { background: none; border: none; color: var(--paper-dim); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; cursor: pointer; }
+  .fw-bottom button:hover { color: var(--amber); }
+
+  /* ---------- Tagging ---------- */
+  .para-block { background: var(--paper); color: var(--ink); border-radius: 4px; padding: 16px; margin-bottom: 10px; }
+  .para-text { font-family: 'Newsreader', serif; font-size: 16px; line-height: 1.6; margin: 0 0 10px; white-space: pre-wrap; }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag-btn { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; padding: 6px 10px; border-radius: 3px; border: 1px solid #d8cdb4; background: #FFFDF8; color: var(--ink-dim); cursor: pointer; }
+  .tag-btn.active-premis { background: var(--teal); color: white; border-color: var(--teal); }
+  .tag-btn.active-punch { background: var(--amber); color: var(--navy-deep); border-color: var(--amber); }
+  .tag-btn.active-detail { background: #d8cdb4; color: var(--ink); }
+  .tag-btn.active-buang { background: var(--rust); color: white; border-color: var(--rust); text-decoration: line-through; }
+
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--teal); color: white; font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 10px 18px; border-radius: 4px; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 70; }
+  .toast.show { opacity: 1; }
+
+  .loading-note { color: var(--paper-dim); font-size: 12px; font-family: 'JetBrains Mono', monospace; padding: 10px 4px; }
+</style>
+</head>
+<body>
+
+<div class="board">
+  <div class="board-title">STASIUN BIT</div>
+  <div class="board-sub">Keberangkatan Materi &middot; Jalur Nulis Bebas</div>
+  <div class="flip-clock mono" id="clockDisplay">--:--</div>
+</div>
+
+<div class="wrap" id="app"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------------- Storage helpers (localStorage, buat versi deploy sendiri) ----------------
+const memFallback = {};
+async function storeSet(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (e) { console.error('storage set error', e); memFallback[key] = value; return null; }
+}
+async function storeGet(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : (memFallback[key] || null);
+  } catch (e) { return memFallback[key] || null; }
+}
+async function storeDelete(key) {
+  try { localStorage.removeItem(key); } catch (e) {}
+  delete memFallback[key];
+}
+async function storeList(prefix) {
+  try {
+    return Object.keys(localStorage).filter(k => k.startsWith(prefix));
+  } catch (e) { return Object.keys(memFallback).filter(k => k.startsWith(prefix)); }
+}
+
+// ---------------- Export ke .txt ----------------
+function downloadText(filename, content) {
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function entryToText(e) {
+  const date = new Date(e.createdAt).toLocaleString('id-ID');
+  if (e.type === 'quickcapture') {
+    return [
+      `TANGKAP CEPAT · ${date}`,
+      '='.repeat(40),
+      `Kejadian: ${e.kejadian || '-'}`,
+      `Dialog: ${e.dialog || '-'}`,
+      `Rasa fisik: ${e.rasa || '-'}`,
+      `Skala keresahan: ${e.skala || '-'}/5`
+    ].join('\n');
+  }
+  const tagLabel = { premis: '[PREMIS KUAT]', punch: '[PUNCHLINE?]', detail: '[BUTUH DETAIL]', buang: '[BUANG]' };
+  const body = (e.paragraphs || []).map((p, i) => {
+    const tag = e.tags && e.tags[i] ? ' ' + tagLabel[e.tags[i]] : '';
+    return p + tag;
+  }).join('\n\n');
+  return [
+    `SESI NULIS · ${e.topic || '(tanpa topik)'} · ${date}`,
+    '='.repeat(40),
+    body || '(kosong)'
+  ].join('\n');
+}
+
+async function exportAllEntries() {
+  const keys = await storeList('entries:');
+  if (!keys || keys.length === 0) { showToast('Belum ada yang bisa diunduh'); return; }
+  const entries = [];
+  for (const k of keys) {
+    const e = await storeGet(k);
+    if (e) entries.push(e);
+  }
+  entries.sort((a, b) => a.createdAt - b.createdAt);
+  const full = entries.map(entryToText).join('\n\n' + '-'.repeat(40) + '\n\n');
+  downloadText('stasiun-bit-semua-materi.txt', full);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function fmtTime(sec) {
+  const m = Math.floor(sec / 60).toString().padStart(2, '0');
+  const s = Math.floor(sec % 60).toString().padStart(2, '0');
+  return m + ':' + s;
+}
+
+function timeAgo(ts) {
+  const diff = Date.now() - ts;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'baru aja';
+  if (mins < 60) return mins + ' menit lalu';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + ' jam lalu';
+  return Math.floor(hrs / 24) + ' hari lalu';
+}
+
+// ---------------- Clock ----------------
+function tickClock() {
+  const d = new Date();
+  document.getElementById('clockDisplay').textContent =
+    d.toLocaleDateString('id-ID', {weekday:'short', day:'numeric', month:'short'}) + '\n' +
+    d.toTimeString().slice(0,5);
+}
+setInterval(tickClock, 1000 * 30);
+tickClock();
+
+// ---------------- App state ----------------
+const app = document.getElementById('app');
+let state = { view: 'home' };
+
+const WARMUP_PROMPTS = [
+  "Hal paling nyebelin yang kejadian minggu ini — ceritain persis, jangan disaring.",
+  "Kapan terakhir kali kamu ngerasa 'ini absurd banget tapi nggak ada yang notice selain gue'?",
+  "Percakapan apa yang masih keputer di kepala kamu, padahal udah lewat berhari-hari?",
+  "Kalo badan kamu bisa protes soal sesuatu hari ini, dia bakal ngomel soal apa?"
+];
+
+function render() {
+  if (state.view === 'home') return renderHome();
+  if (state.view === 'quickcapture') return renderQuickCapture();
+  if (state.view === 'warmup') return renderWarmup();
+  if (state.view === 'freewrite') return renderFreewrite();
+  if (state.view === 'tagging') return renderTagging();
+  if (state.view === 'detail') return renderDetail();
+}
+
+// ---------------- HOME ----------------
+async function renderHome() {
+  app.innerHTML = `
+    <div class="cta-row">
+      <div class="cta-label">Peron 1 &middot; Reaksi Cepat</div>
+      <button class="btn btn-primary" id="btnQC">
+        ⚡ Tangkap Cepat
+        <div class="cta-desc">Keresahan muncul sekarang? Rekam detailnya sebelum ilang. 1 menit doang.</div>
+      </button>
+    </div>
+    <div class="cta-row">
+      <div class="cta-label">Peron 2 &middot; Sesi Nulis</div>
+      <button class="btn btn-secondary" id="btnSession">
+        🔥 Mulai Sesi Nulis (Fase Panas → Freewrite → Tagging)
+        <div class="cta-desc">±25 menit. Mode kunci mundur aktif — nggak bisa hapus, cuma bisa maju.</div>
+      </button>
+    </div>
+    <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>Log Keberangkatan</span>
+      <button class="btn-small btn-ghost" id="btnExportAll" style="text-transform:none;letter-spacing:0;font-family:'JetBrains Mono',monospace;">⬇ unduh semua .txt</button>
+    </div>
+    <div id="entryList"><div class="loading-note">memuat...</div></div>
+  `;
+  document.getElementById('btnQC').onclick = () => { state = { view: 'quickcapture' }; render(); };
+  document.getElementById('btnSession').onclick = () => {
+    state = { view: 'warmup', promptIdx: 0, warmupText: '', warmupStart: Date.now() };
+    render();
+  };
+  document.getElementById('btnExportAll').onclick = exportAllEntries;
+  await loadEntryList();
+}
+
+async function loadEntryList() {
+  const keys = await storeList('entries:');
+  const listEl = document.getElementById('entryList');
+  if (!keys || keys.length === 0) {
+    listEl.innerHTML = `<div class="empty-note">Belum ada keberangkatan. Mulai dari Tangkap Cepat atau Sesi Nulis di atas.</div>`;
+    return;
+  }
+  const entries = [];
+  for (const k of keys) {
+    const e = await storeGet(k);
+    if (e) entries.push({ key: k, ...e });
+  }
+  entries.sort((a, b) => b.createdAt - a.createdAt);
+  listEl.innerHTML = entries.map((e, i) => {
+    const plat = e.type === 'quickcapture' ? 'QC' : 'FW';
+    const title = e.type === 'quickcapture' ? (e.kejadian || '(tanpa judul)').slice(0, 40) : (e.topic || 'Sesi freewrite').slice(0,40);
+    const tagged = e.tags && Object.keys(e.tags).length > 0;
+    const status = e.type === 'session' ? (tagged ? '<span class="row-status status-tagged">SUDAH DITAG</span>' : '<span class="row-status status-baru">BELUM DITAG</span>') : '';
+    return `<div class="row" data-key="${e.key}">
+      <div class="row-plat mono">${plat}</div>
+      <div class="row-body">
+        <div class="row-title">${escapeHtml(title)}</div>
+        <div class="row-meta">${timeAgo(e.createdAt)}</div>
+      </div>
+      ${status}
+    </div>`;
+  }).join('');
+  listEl.querySelectorAll('.row').forEach(row => {
+    row.onclick = async () => {
+      const e = await storeGet(row.dataset.key);
+      state = { view: 'detail', entry: { key: row.dataset.key, ...e } };
+      render();
+    };
+  });
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+// ---------------- QUICK CAPTURE ----------------
+function renderQuickCapture() {
+  app.innerHTML = `
+    <div class="topbar">
+      <button class="back-link" id="back">&larr; balik</button>
+    </div>
+    <div class="cta-label">Tangkap Cepat</div>
+    <div class="paper-card">
+      <div class="qc-field">
+        <span class="field-label">Kejadiannya apa? (1-2 kalimat, jangan disaring)</span>
+        <textarea id="qcKejadian" rows="3" placeholder="Tadi di angkringan ada bapak-bapak..."></textarea>
+      </div>
+      <div class="qc-field">
+        <span class="field-label">Kata-kata PERSIS yang diomongin (dialog asli)</span>
+        <textarea id="qcDialog" rows="2" placeholder="'Gulanya kurang ki mas'"></textarea>
+      </div>
+      <div class="qc-field">
+        <span class="field-label">Rasa di badan pas itu kejadian</span>
+        <input type="text" id="qcRasa" placeholder="dada rasanya kaku, tangan gemeter...">
+      </div>
+      <div class="qc-field">
+        <span class="field-label">Skala keresahan</span>
+        <input type="range" id="qcSkala" min="1" max="5" value="3">
+        <div class="scale-labels"><span>1 · lucu doang</span><span>5 · ganggu banget</span></div>
+      </div>
+      <button class="btn btn-primary" id="qcSave">Simpen ke Stasiun</button>
+    </div>
+  `;
+  document.getElementById('back').onclick = () => { state = { view: 'home' }; render(); };
+  document.getElementById('qcSave').onclick = async () => {
+    const kejadian = document.getElementById('qcKejadian').value.trim();
+    if (!kejadian) { showToast('Isi dulu kejadiannya ya'); return; }
+    const entry = {
+      type: 'quickcapture',
+      kejadian,
+      dialog: document.getElementById('qcDialog').value.trim(),
+      rasa: document.getElementById('qcRasa').value.trim(),
+      skala: document.getElementById('qcSkala').value,
+      createdAt: Date.now()
+    };
+    const key = 'entries:qc-' + Date.now();
+    await storeSet(key, entry);
+    showToast('Ketangkep. Aman.');
+    state = { view: 'home' };
+    render();
+  };
+}
+
+// ---------------- WARMUP (Fase Panas) ----------------
+let warmupTimerHandle = null;
+function renderWarmup() {
+  const totalSec = 300;
+  app.innerHTML = `
+    <div class="topbar">
+      <button class="back-link" id="back">&larr; batal</button>
+      <span class="mono" style="font-size:11px;color:var(--paper-dim)">FASE PANAS · 5 MENIT</span>
+    </div>
+    <div class="timer-big mono" id="warmupTimer">05:00</div>
+    <div class="prompt-box"><p id="warmupPrompt">${WARMUP_PROMPTS[0]}</p></div>
+    <textarea id="warmupScratch" rows="6" placeholder="Coret-coret bebas di sini, nggak usah rapi..." style="background:var(--navy-deep);color:var(--paper);border:1px solid var(--line);font-family:'Newsreader',serif;font-size:16px;padding:14px;width:100%;border-radius:4px;"></textarea>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn btn-ghost" id="nextPrompt" style="flex:1">Prompt berikutnya →</button>
+      <button class="btn btn-secondary" id="skipToFw" style="flex:1">Lewati, langsung nulis →</button>
+    </div>
+  `;
+  document.getElementById('back').onclick = () => { clearInterval(warmupTimerHandle); state = { view: 'home' }; render(); };
+  let idx = 0;
+  document.getElementById('nextPrompt').onclick = () => {
+    idx = (idx + 1) % WARMUP_PROMPTS.length;
+    document.getElementById('warmupPrompt').textContent = WARMUP_PROMPTS[idx];
+  };
+  const goToFreewrite = () => {
+    clearInterval(warmupTimerHandle);
+    const scratch = document.getElementById('warmupScratch').value;
+    state = { view: 'freewrite', warmupText: scratch, topic: scratch.split('\n')[0].slice(0,60) || 'Sesi freewrite', freewriteText: '', lockOn: true };
+    render();
+  };
+  document.getElementById('skipToFw').onclick = goToFreewrite;
+  let remaining = totalSec;
+  warmupTimerHandle = setInterval(() => {
+    remaining--;
+    document.getElementById('warmupTimer').textContent = fmtTime(remaining);
+    if (remaining <= 0) goToFreewrite();
+  }, 1000);
+}
+
+// ---------------- FREEWRITE ----------------
+let fwTimerHandle = null;
+function renderFreewrite() {
+  const totalSec = 15 * 60;
+  let remaining = totalSec;
+  let lockOn = state.lockOn !== false;
+
+  app.innerHTML = `
+    <div class="fw-shell">
+      <div class="fw-top">
+        <span class="fw-timer mono" id="fwTimer">${fmtTime(remaining)}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--paper-dim);letter-spacing:1px;">TULIS TERUS, JANGAN BERHENTI</span>
+        <span class="fw-lock-badge ${lockOn ? '' : 'off'}" id="lockBadge">${lockOn ? '🔒 KUNCI MUNDUR' : '🔓 BEBAS EDIT'}</span>
+      </div>
+      <div class="fw-flash" id="fwFlash">terus aja, jangan mundur</div>
+      <textarea class="fw-text" id="fwText" placeholder="Mulai aja. Boleh jelek, boleh typo, boleh nggak nyambung...">${state.warmupText ? '' : ''}</textarea>
+      <div class="fw-bottom">
+        <button id="fwFinish">selesai duluan & lanjut ke tagging →</button>
+      </div>
+    </div>
+  `;
+  const ta = document.getElementById('fwText');
+  ta.value = state.freewriteText || '';
+  ta.focus();
+
+  document.getElementById('lockBadge').onclick = () => {
+    lockOn = !lockOn;
+    const b = document.getElementById('lockBadge');
+    b.textContent = lockOn ? '🔒 KUNCI MUNDUR' : '🔓 BEBAS EDIT';
+    b.classList.toggle('off', !lockOn);
+  };
+
+  function flashWarning() {
+    const f = document.getElementById('fwFlash');
+    f.classList.add('show');
+    ta.classList.add('shake');
+    setTimeout(() => { f.classList.remove('show'); ta.classList.remove('shake'); }, 400);
+  }
+
+  ta.addEventListener('keydown', (e) => {
+    if (!lockOn) return;
+    const blocked = ['Backspace', 'Delete'];
+    const isUndo = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z';
+    const isSelectAllDelete = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a';
+    if (blocked.includes(e.key) || isUndo) {
+      e.preventDefault();
+      flashWarning();
+    }
+  });
+
+  function finishSession() {
+    clearInterval(fwTimerHandle);
+    state = {
+      view: 'tagging',
+      topic: state.topic || 'Sesi freewrite',
+      warmupText: state.warmupText || '',
+      freewriteText: ta.value,
+      createdAt: Date.now()
+    };
+    render();
+  }
+
+  document.getElementById('fwFinish').onclick = finishSession;
+
+  fwTimerHandle = setInterval(() => {
+    remaining--;
+    document.getElementById('fwTimer').textContent = fmtTime(remaining);
+    if (remaining <= 0) finishSession();
+  }, 1000);
+}
+
+// ---------------- TAGGING ----------------
+function renderTagging() {
+  const text = state.freewriteText || '';
+  const paras = text.split(/\n{1,}/).map(p => p.trim()).filter(p => p.length > 0);
+  const tags = {};
+
+  app.innerHTML = `
+    <div class="topbar">
+      <span class="mono" style="font-size:11px;color:var(--paper-dim)">TAGGING · Tandain yang menjanjikan</span>
+    </div>
+    <div class="section-title" style="margin-top:0">Hasil Tulisan</div>
+    <div id="paraList"></div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="btn btn-primary" id="saveSession" style="flex:1">Simpen sesi ini</button>
+      <button class="btn btn-secondary" id="dlSession" style="flex:1">⬇ Unduh .txt</button>
+    </div>
+  `;
+
+  const listEl = document.getElementById('paraList');
+  if (paras.length === 0) {
+    listEl.innerHTML = `<div class="empty-note">Kosong nih. Nggak apa-apa, kadang gitu — coba sesi lagi nanti.</div>`;
+  } else {
+    listEl.innerHTML = paras.map((p, i) => `
+      <div class="para-block">
+        <p class="para-text">${escapeHtml(p)}</p>
+        <div class="tag-row" data-idx="${i}">
+          <button class="tag-btn" data-tag="premis">🔥 Premis kuat</button>
+          <button class="tag-btn" data-tag="punch">🎯 Punchline?</button>
+          <button class="tag-btn" data-tag="detail">🧩 Butuh detail</button>
+          <button class="tag-btn" data-tag="buang">🗑️ Buang</button>
+        </div>
+      </div>
+    `).join('');
+    listEl.querySelectorAll('.tag-row').forEach(row => {
+      const idx = row.dataset.idx;
+      row.querySelectorAll('.tag-btn').forEach(btn => {
+        btn.onclick = () => {
+          const tag = btn.dataset.tag;
+          const cur = tags[idx];
+          row.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active-premis','active-punch','active-detail','active-buang'));
+          if (cur === tag) {
+            delete tags[idx];
+          } else {
+            tags[idx] = tag;
+            btn.classList.add('active-' + tag);
+          }
+        };
+      });
+    });
+  }
+
+  document.getElementById('saveSession').onclick = async () => {
+    const entry = {
+      type: 'session',
+      topic: state.topic,
+      warmupText: state.warmupText,
+      freewriteText: text,
+      paragraphs: paras,
+      tags,
+      createdAt: state.createdAt || Date.now()
+    };
+    const key = 'entries:session-' + Date.now();
+    await storeSet(key, entry);
+    showToast('Sesi kesimpen. Kerja bagus.');
+    state = { view: 'home' };
+    render();
+  };
+  document.getElementById('dlSession').onclick = () => {
+    const entry = { type: 'session', topic: state.topic, paragraphs: paras, tags, createdAt: state.createdAt || Date.now() };
+    downloadText('sesi-' + new Date(entry.createdAt).toISOString().slice(0,10) + '.txt', entryToText(entry));
+  };
+}
+
+// ---------------- DETAIL VIEW ----------------
+function renderDetail() {
+  const e = state.entry;
+  app.innerHTML = `
+    <div class="topbar">
+      <button class="back-link" id="back">&larr; balik</button>
+      <div style="display:flex;gap:14px;">
+        <button class="back-link" id="dlBtn" style="color:var(--amber)">⬇ unduh .txt</button>
+        <button class="back-link" id="delBtn" style="color:var(--rust)">hapus</button>
+      </div>
+    </div>
+  `;
+  if (e.type === 'quickcapture') {
+    app.innerHTML += `
+      <div class="paper-card">
+        <span class="field-label">Kejadian</span>
+        <p class="serif" style="font-size:17px;margin:0 0 14px;">${escapeHtml(e.kejadian)}</p>
+        ${e.dialog ? `<span class="field-label">Dialog</span><p class="serif" style="font-size:16px;margin:0 0 14px;">"${escapeHtml(e.dialog)}"</p>` : ''}
+        ${e.rasa ? `<span class="field-label">Rasa fisik</span><p class="serif" style="font-size:16px;margin:0 0 14px;">${escapeHtml(e.rasa)}</p>` : ''}
+        <span class="field-label">Skala keresahan: ${e.skala}/5</span>
+      </div>
+    `;
+  } else {
+    const tagLabel = { premis: '🔥 Premis kuat', punch: '🎯 Punchline?', detail: '🧩 Butuh detail', buang: '🗑️ Buang' };
+    app.innerHTML += `
+      <div class="paper-card">
+        ${(e.paragraphs || []).map((p, i) => `
+          <p class="serif" style="font-size:16px;line-height:1.6;margin:0 0 4px;">${escapeHtml(p)}</p>
+          ${e.tags && e.tags[i] ? `<div class="row-status status-${e.tags[i]==='premis'||e.tags[i]==='punch' ? 'tagged':'baru'}" style="display:inline-block;margin-bottom:14px;">${tagLabel[e.tags[i]]}</div>` : '<div style="margin-bottom:14px;"></div>'}
+        `).join('')}
+      </div>
+    `;
+  }
+  document.getElementById('back').onclick = () => { state = { view: 'home' }; render(); };
+  document.getElementById('dlBtn').onclick = () => {
+    const fname = (e.type === 'quickcapture' ? 'tangkap-cepat-' : 'sesi-') + new Date(e.createdAt).toISOString().slice(0,10) + '.txt';
+    downloadText(fname, entryToText(e));
+  };
+  document.getElementById('delBtn').onclick = async () => {
+    await storeDelete(e.key);
+    showToast('Dihapus');
+    state = { view: 'home' };
+    render();
+  };
+}
+
+render();
+</script>
+</body>
+</html>
