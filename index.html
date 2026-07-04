@@ -309,10 +309,35 @@ const app = document.getElementById('app');
 let state = { view: 'home' };
 
 const WARMUP_PROMPTS = [
-  "Hal paling nyebelin yang kejadian minggu ini — ceritain persis, jangan disaring.",
-  "Kapan terakhir kali kamu ngerasa 'ini absurd banget tapi nggak ada yang notice selain gue'?",
+  "Hal paling nyebelin yang kejadian minggu ini, ceritain persis, jangan disaring.",
+  "Kapan terakhir kali kamu ngerasa 'ini absurd banget tapi nggak ada yang notice selain aku'?",
   "Percakapan apa yang masih keputer di kepala kamu, padahal udah lewat berhari-hari?",
-  "Kalo badan kamu bisa protes soal sesuatu hari ini, dia bakal ngomel soal apa?"
+  "Antrian atau macet terakhir yang bikin kamu ngomel dalam hati — ngomel apa persisnya?",
+  "Barang di rumah kamu yang keberadaannya udah nggak masuk akal tapi tetep disimpen.",
+  "Notifikasi HP apa yang bikin kamu males buka tapi tetep dibuka juga?",
+  "Momen minggu ini kamu pura-pura baik-baik aja padahal enggak.",
+  "Kebiasaan orang lain yang bikin kamu pengen komentar tapi milih diem.",
+  "Hal receh yang kamu perdebatkan sama diri sendiri selama lebih dari 5 menit.",
+  "Aturan tak tertulis di lingkungan kamu yang kalau dipikir-pikir aneh banget.",
+  "Momen di mana kamu jadi satu-satunya orang yang serius padahal harusnya santai (atau sebaliknya).",
+  "Kejadian minggu ini yang kalau diceritain ke orang lain, mereka pasti bilang 'lah kok bisa'.",
+  "Momen kamu ngerasa jadi orang asing di situasi yang harusnya familiar.",
+  "Kalimat balasan yang harusnya kamu bilang tadi, tapi baru kepikiran sekarang.",
+  "Pertanyaan yang kamu tanya ke diri sendiri tengah malam minggu ini.",
+  "Hal yang kamu pengen bilang ke seseorang tapi nggak berani.",
+  "Momen kamu overthinking soal sesuatu yang sebenernya kecil banget.",
+  "Apa yang bikin kamu susah tidur semalam, walau cuma sebentar?",
+  "Bagian tubuh kamu yang paling sering jadi bahan ledekan (dari orang lain atau diri sendiri).",
+  "Momen kamu sadar badan kamu berubah, entah cara orang liat atau cara kamu gerak.",
+  "Pakaian yang bikin kamu insecure tapi tetep dipake juga.",
+  "Hal yang kamu lakuin biar keliatan 'biasa aja' padahal itu usaha keras.",
+  "Kebiasaan dari kampung halaman kamu yang ternyata aneh buat orang lain.",
+  "Hal yang orang kota nggak akan ngerti soal hidup di daerah kamu.",
+  "Kalimat orang tua kamu yang sering diulang dan sekarang malah kamu yang ngomong itu.",
+  "Hal yang kamu takutin tapi nggak pernah kamu omongin ke siapa-siapa.",
+  "Kebohongan kecil yang kamu bilang minggu ini, ke siapa dan kenapa.",
+  "Sesuatu yang kamu benci tapi nggak bisa berhenti lakuin.",
+  "Rutinitas kamu yang kalau diomongin keras-keras kedengeran konyol."
 ];
 
 function render() {
@@ -408,22 +433,22 @@ function renderQuickCapture() {
     <div class="paper-card">
       <div class="qc-field">
         <span class="field-label">Kejadiannya apa? (1-2 kalimat, jangan disaring)</span>
-        <textarea id="qcKejadian" rows="3" placeholder="Tadi di angkringan ada bapak-bapak..."></textarea>
+        <textarea id="qcKejadian" rows="3" placeholder="Ketika lagi enak-enak dengerin musik di spotify terus ada iklan motong"></textarea>
       </div>
       <div class="qc-field">
         <span class="field-label">Kata-kata persis yang diomongin</span>
-        <textarea id="qcDialog" rows="2" placeholder="'Gulanya kurang ki mas'"></textarea>
+        <textarea id="qcDialog" rows="2" placeholder="'Pagi, aku Rony Parulian...'"></textarea>
       </div>
       <div class="qc-field">
-        <span class="field-label">Badan kamu waktu itu rasanya gimana</span>
-        <input type="text" id="qcRasa" placeholder="dada rasanya kaku, tangan gemeteran...">
+        <span class="field-label">Apa yang kamu rasain dalam diri kamu</span>
+        <input type="text" id="qcRasa" placeholder="Aneh banget, yang tadinya nangis jadi awkward">
       </div>
       <div class="qc-field">
         <span class="field-label">Seberapa ganggu ini di kepala kamu</span>
         <input type="range" id="qcSkala" min="1" max="5" value="3">
-        <div class="scale-labels"><span>1 · lucu doang</span><span>5 · ganggu banget</span></div>
+        <div class="scale-labels"><span>1 · B aja</span><span>5 · ganggu banget</span></div>
       </div>
-      <button class="btn btn-primary" id="qcSave">Simpen</button>
+      <button class="btn btn-primary" id="qcSave">Simpan</button>
     </div>
   `;
   document.getElementById('back').onclick = () => { state = { view: 'home' }; render(); };
@@ -457,10 +482,10 @@ function renderWarmup() {
     </div>
     <div class="timer-big mono" id="warmupTimer">05:00</div>
     <div class="prompt-box"><p id="warmupPrompt">${WARMUP_PROMPTS[0]}</p></div>
-    <textarea id="warmupScratch" rows="6" placeholder="Coret-coret bebas di sini, nggak usah rapi..." style="background:var(--navy-deep);color:var(--paper);border:1px solid var(--line);font-family:'Newsreader',serif;font-size:16px;padding:14px;width:100%;border-radius:4px;"></textarea>
+    <textarea id="warmupScratch" rows="6" placeholder="Jawab pertanyaan di atas dan tulis bebas di sini, nggak usah rapi..." style="background:var(--navy-deep);color:var(--paper);border:1px solid var(--line);font-family:'Newsreader',serif;font-size:16px;padding:14px;width:100%;border-radius:4px;"></textarea>
     <div style="display:flex;gap:10px;margin-top:14px;">
       <button class="btn btn-ghost" id="nextPrompt" style="flex:1">Ganti pertanyaan →</button>
-      <button class="btn btn-secondary" id="skipToFw" style="flex:1">Udah, langsung nulis →</button>
+      <button class="btn btn-secondary" id="skipToFw" style="flex:1">Udah? Detailin di sini →</button>
     </div>
   `;
   document.getElementById('back').onclick = () => { clearInterval(warmupTimerHandle); state = { view: 'home' }; render(); };
@@ -496,7 +521,7 @@ function renderFreewrite() {
       <div class="fw-top">
         <span class="fw-timer mono" id="fwTimer">${fmtTime(remaining)}</span>
         <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--paper-dim);letter-spacing:1px;">TULIS TERUS, JANGAN BERHENTI</span>
-        <span class="fw-lock-badge ${lockOn ? '' : 'off'}" id="lockBadge">${lockOn ? '🔒 Backspace mati' : '🔓 Backspace nyala'}</span>
+        <span class="fw-lock-badge ${lockOn ? '' : 'off'}" id="lockBadge">${lockOn ? '🔒 Delete mati' : '🔓 Delete nyala'}</span>
       </div>
       <div class="fw-flash" id="fwFlash">lanjut aja, jangan dihapus</div>
       <textarea class="fw-text" id="fwText" placeholder="Mulai aja. Boleh jelek, boleh typo, boleh nggak nyambung...">${state.warmupText ? '' : ''}</textarea>
@@ -512,7 +537,7 @@ function renderFreewrite() {
   document.getElementById('lockBadge').onclick = () => {
     lockOn = !lockOn;
     const b = document.getElementById('lockBadge');
-    b.textContent = lockOn ? '🔒 Backspace mati' : '🔓 Backspace nyala';
+    b.textContent = lockOn ? '🔒 Delete mati' : '🔓 Delete nyala';
     b.classList.toggle('off', !lockOn);
   };
 
@@ -575,7 +600,7 @@ function renderTagging() {
 
   const listEl = document.getElementById('paraList');
   if (paras.length === 0) {
-    listEl.innerHTML = `<div class="empty-note">Kosong nih. Nggak apa-apa, kadang gitu — coba sesi lagi nanti.</div>`;
+    listEl.innerHTML = `<div class="empty-note">Kosong nih. Nggak apa-apa, kadang gitu. Coba sesi lagi nanti.</div>`;
   } else {
     listEl.innerHTML = paras.map((p, i) => `
       <div class="para-block">
